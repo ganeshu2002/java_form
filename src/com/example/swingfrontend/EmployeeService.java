@@ -1,56 +1,67 @@
-// Removed package declaration to match default package
+// package com.example.swingfrontend;
 
-import java.net.URI;
-import java.net.http.*;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class EmployeeService {
 
     private static final String BASE_URL = "http://localhost:8080/api/employees";
+    private HttpClient client;
 
-    private final HttpClient client = HttpClient.newHttpClient();
+    public EmployeeService() {
+        client = HttpClient.newHttpClient();
+    }
 
-    // CREATE Employee
     public String createEmployee(String json) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL))
                 .header("Content-Type", "application/json")
-                .POST(BodyPublishers.ofString(json))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        return response.body();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseResponse(response);
     }
 
-    // GET all Employees
-    public String getAllEmployees() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL))
-                .GET()
-                .build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        return response.body();
-    }
-
-    // UPDATE Employee
     public String updateEmployee(Long id, String json) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/" + id))
                 .header("Content-Type", "application/json")
-                .PUT(BodyPublishers.ofString(json))
+                .PUT(HttpRequest.BodyPublishers.ofString(json))
                 .build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        return response.body();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseResponse(response);
     }
 
-    // DELETE Employee
     public String deleteEmployee(Long id) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/" + id))
                 .DELETE()
                 .build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        return response.body();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseResponse(response);
+    }
+
+    public String getAllEmployees() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseResponse(response);
+    }
+
+    private String parseResponse(HttpResponse<String> response) {
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            return response.body();
+        } else {
+            return "Error " + response.statusCode() + " : " + response.body();
+        }
     }
 }
