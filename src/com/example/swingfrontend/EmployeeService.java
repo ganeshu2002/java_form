@@ -22,29 +22,57 @@ public class EmployeeService {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
+        System.out.println("POST Request URL: " + BASE_URL);
+        System.out.println("POST Body: " + json);
+
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return parseResponse(response);
+        System.out.println("Response: " + response.statusCode() + " | " + response.body());
+
+        if (response.statusCode() == 201 || response.statusCode() == 200) {
+            return "Employee added successfully!";
+        } else {
+            return "Error: " + response.statusCode() + " | " + response.body();
+        }
     }
 
     public String updateEmployee(Long id, String json) throws IOException, InterruptedException {
+        String url = BASE_URL + "/" + id;
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/" + id))
+                .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .PUT(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
+        System.out.println("PUT Request URL: " + url);
+        System.out.println("PUT Body: " + json);
+
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return parseResponse(response);
+        System.out.println("Response: " + response.statusCode() + " | " + response.body());
+
+        if (response.statusCode() == 200) {
+            return "Employee updated successfully!";
+        } else {
+            return "Error: " + response.statusCode() + " | " + response.body();
+        }
     }
 
     public String deleteEmployee(Long id) throws IOException, InterruptedException {
+        String url = BASE_URL + "/" + id;
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/" + id))
+                .uri(URI.create(url))
                 .DELETE()
                 .build();
 
+        System.out.println("DELETE Request URL: " + url);
+
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return parseResponse(response);
+        System.out.println("Response: " + response.statusCode() + " | " + response.body());
+
+        if (response.statusCode() == 200) {
+            return "Employee deleted successfully!";
+        } else {
+            return "Error: " + response.statusCode() + " | " + response.body();
+        }
     }
 
     public String getAllEmployees() throws IOException, InterruptedException {
@@ -53,15 +81,15 @@ public class EmployeeService {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return parseResponse(response);
-    }
+        System.out.println("GET Request URL: " + BASE_URL);
 
-    private String parseResponse(HttpResponse<String> response) {
-        if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            return response.body();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Response: " + response.statusCode() + " | " + response.body());
+
+        if (response.statusCode() == 200) {
+            return response.body();  // Return raw JSON array
         } else {
-            return "Error " + response.statusCode() + " : " + response.body();
+            return "[]";  // Return empty array on error
         }
     }
 }

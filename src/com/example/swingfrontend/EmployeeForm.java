@@ -1,19 +1,12 @@
-// package com.example.swingfrontend;
-
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import java.awt.*;
+import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -26,6 +19,16 @@ public class EmployeeForm extends JFrame {
     private DefaultTableModel tableModel;
 
     private EmployeeService service;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private static final Map<String, String[]> cityMap = new HashMap<>();
+    static {
+        cityMap.put("mumbai", new String[]{"Maharashtra", "India"});
+        cityMap.put("pune", new String[]{"Maharashtra", "India"});
+        cityMap.put("new york", new String[]{"New York", "USA"});
+        cityMap.put("los angeles", new String[]{"California", "USA"});
+        cityMap.put("london", new String[]{"England", "UK"});
+    }
 
     public EmployeeForm() {
         service = new EmployeeService();
@@ -42,113 +45,123 @@ public class EmployeeForm extends JFrame {
 
         panel.add(new JLabel("First Name")); txtFirstName = new JTextField(); panel.add(txtFirstName);
         panel.add(new JLabel("Last Name")); txtLastName = new JTextField(); panel.add(txtLastName);
-        panel.add(new JLabel("Date of Birth (yyyy-mm-dd)")); txtDob = new JTextField(); panel.add(txtDob);
-        panel.add(new JLabel("Date of Joining (yyyy-mm-dd)")); txtDoj = new JTextField(); panel.add(txtDoj);
-        panel.add(new JLabel("Age")); txtAge = new JTextField(); panel.add(txtAge);
+        panel.add(new JLabel("Date of Birth (yyyy-MM-dd)")); txtDob = new JTextField(); panel.add(txtDob);
+        panel.add(new JLabel("Date of Joining (yyyy-MM-dd)")); txtDoj = new JTextField(); panel.add(txtDoj);
+        panel.add(new JLabel("Age")); txtAge = new JTextField(); txtAge.setEditable(false); panel.add(txtAge);
         panel.add(new JLabel("Address")); txtAddress = new JTextField(); panel.add(txtAddress);
         panel.add(new JLabel("Mobile")); txtMobile = new JTextField(); panel.add(txtMobile);
         panel.add(new JLabel("City")); txtCity = new JTextField(); panel.add(txtCity);
-        panel.add(new JLabel("State")); txtState = new JTextField(); panel.add(txtState);
-        panel.add(new JLabel("Country")); txtCountry = new JTextField(); panel.add(txtCountry);
-        panel.add(new JLabel("10th (%)")); txtTenth = new JTextField(); panel.add(txtTenth);
-        panel.add(new JLabel("12th (%)")); txtTwelfth = new JTextField(); panel.add(txtTwelfth);
-        panel.add(new JLabel("Graduation (%)")); txtGraduation = new JTextField(); panel.add(txtGraduation);
+        panel.add(new JLabel("State")); txtState = new JTextField(); txtState.setEditable(false); panel.add(txtState);
+        panel.add(new JLabel("Country")); txtCountry = new JTextField(); txtCountry.setEditable(false); panel.add(txtCountry);
+        panel.add(new JLabel("10th Marks")); txtTenth = new JTextField(); panel.add(txtTenth);
+        panel.add(new JLabel("12th Marks")); txtTwelfth = new JTextField(); panel.add(txtTwelfth);
+        panel.add(new JLabel("Graduation Marks")); txtGraduation = new JTextField(); panel.add(txtGraduation);
 
         btnAdd = new JButton("Add Employee");
-        btnUpdate = new JButton("Update Employee");
-        btnDelete = new JButton("Delete Employee");
-        btnGetAll = new JButton("Get All Employees");
-
-        panel.add(btnAdd); panel.add(btnUpdate);
-        panel.add(btnDelete); panel.add(btnGetAll);
+        panel.add(btnAdd);
+        btnUpdate = new JButton("Update Employee"); panel.add(btnUpdate);
+        btnDelete = new JButton("Delete Employee"); panel.add(btnDelete);
+        btnGetAll = new JButton("Get All Employees"); panel.add(btnGetAll);
 
         add(panel, BorderLayout.NORTH);
 
-        // Table for showing employees
-        String[] columns = {"ID","First Name","Last Name","DOB","DOJ","Age","City","Mobile"};
-        tableModel = new DefaultTableModel(columns, 0);
+        tableModel = new DefaultTableModel(new String[]{"ID","First Name","Last Name","Age","City","State","Country"}, 0);
         table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Button actions
-        btnAdd.addActionListener(e -> handleAdd());
-        btnUpdate.addActionListener(e -> handleUpdate());
-        btnDelete.addActionListener(e -> handleDelete());
-        btnGetAll.addActionListener(e -> handleGetAll());
+        // Listeners
+        txtDob.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent e) { calculateAge(); }
+        });
+
+        txtCity.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent e) { fillStateCountry(); }
+        });
+
+        btnAdd.addActionListener(e -> addEmployee());
+        btnGetAll.addActionListener(e -> fetchEmployees());
     }
 
-    // Build JSON from form fields
-    private String getJsonFromForm() {
-        return "{"
-                + "\"firstName\":\"" + txtFirstName.getText() + "\","
-                + "\"lastName\":\"" + txtLastName.getText() + "\","
-                + "\"dob\":\"" + txtDob.getText() + "\","
-                + "\"doj\":\"" + txtDoj.getText() + "\","
-                + "\"age\":" + txtAge.getText() + ","
-                + "\"address\":\"" + txtAddress.getText() + "\","
-                + "\"mobile\":\"" + txtMobile.getText() + "\","
-                + "\"city\":\"" + txtCity.getText() + "\","
-                + "\"state\":\"" + txtState.getText() + "\","
-                + "\"country\":\"" + txtCountry.getText() + "\","
-                + "\"tenth\":\"" + txtTenth.getText() + "\","
-                + "\"twelfth\":\"" + txtTwelfth.getText() + "\","
-                + "\"graduation\":\"" + txtGraduation.getText() + "\""
-                + "}";
-    }
-
-    private void handleAdd() {
-        try {
-            String json = getJsonFromForm();
-            String response = service.createEmployee(json);
-            JOptionPane.showMessageDialog(this, "Add: " + response);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+    private void calculateAge() {
+        String dobStr = txtDob.getText().trim();
+        if (!dobStr.isEmpty()) {
+            try {
+                LocalDate dob = LocalDate.parse(dobStr, formatter);
+                int age = Period.between(dob, LocalDate.now()).getYears();
+                txtAge.setText(String.valueOf(age));
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid DOB format! Use yyyy-MM-dd");
+            }
         }
     }
 
-    private void handleUpdate() {
-        try {
-            Long id = Long.parseLong(txtUserId.getText());
-            String json = getJsonFromForm();
-            String response = service.updateEmployee(id, json);
-            JOptionPane.showMessageDialog(this, "Update: " + response);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+    private void fillStateCountry() {
+        String city = txtCity.getText().trim().toLowerCase();
+        if (cityMap.containsKey(city)) {
+            txtState.setText(cityMap.get(city)[0]);
+            txtCountry.setText(cityMap.get(city)[1]);
+        } else {
+            txtState.setText("");
+            txtCountry.setText("");
         }
     }
 
-    private void handleDelete() {
+    private void addEmployee() {
         try {
-            Long id = Long.parseLong(txtUserId.getText());
-            String response = service.deleteEmployee(id);
-            JOptionPane.showMessageDialog(this, "Delete: " + response);
+            if (txtFirstName.getText().trim().isEmpty() || txtDob.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "First Name and DOB are required!");
+                return;
+            }
+
+            JSONObject json = new JSONObject();
+            putIfNotEmpty(json, "firstName", txtFirstName.getText());
+            putIfNotEmpty(json, "lastName", txtLastName.getText());
+            putIfNotEmpty(json, "dob", txtDob.getText());
+            putIfNotEmpty(json, "doj", txtDoj.getText());
+            if (!txtAge.getText().trim().isEmpty()) json.put("age", Integer.parseInt(txtAge.getText()));
+            putIfNotEmpty(json, "address", txtAddress.getText());
+            putIfNotEmpty(json, "mobile", txtMobile.getText());
+            putIfNotEmpty(json, "city", txtCity.getText());
+            putIfNotEmpty(json, "state", txtState.getText());
+            putIfNotEmpty(json, "country", txtCountry.getText());
+            if (!txtTenth.getText().trim().isEmpty()) json.put("education10", Integer.parseInt(txtTenth.getText()));
+            if (!txtTwelfth.getText().trim().isEmpty()) json.put("education12", Integer.parseInt(txtTwelfth.getText()));
+            if (!txtGraduation.getText().trim().isEmpty()) json.put("graduation", Integer.parseInt(txtGraduation.getText()));
+
+            System.out.println("Sending JSON: " + json);
+            String response = service.createEmployee(json.toString());
+            JOptionPane.showMessageDialog(this, response);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error adding employee: " + ex.getMessage());
         }
     }
 
-    private void handleGetAll() {
+    private void fetchEmployees() {
         try {
             String response = service.getAllEmployees();
-            tableModel.setRowCount(0); // clear table
-
+            System.out.println("Response from API: " + response);
+            tableModel.setRowCount(0);
             JSONArray arr = new JSONArray(response);
             for (int i = 0; i < arr.length(); i++) {
-                JSONObject emp = arr.getJSONObject(i);
-                Object[] row = new Object[]{
-                        emp.getLong("userId"),
-                        emp.getString("firstName"),
-                        emp.getString("lastName"),
-                        emp.getString("dob"),
-                        emp.optString("doj",""),
-                        emp.getInt("age"),
-                        emp.getString("city"),
-                        emp.getString("mobile")
-                };
-                tableModel.addRow(row);
+                JSONObject obj = arr.getJSONObject(i);
+                tableModel.addRow(new Object[]{
+                        obj.optLong("userId"),
+                        obj.optString("firstName"),
+                        obj.optString("lastName"),
+                        obj.optInt("age"),
+                        obj.optString("city"),
+                        obj.optString("state"),
+                        obj.optString("country")
+                });
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error fetching employees: " + ex.getMessage());
+        }
+    }
+
+    private void putIfNotEmpty(JSONObject json, String key, String value) {
+        if (value != null && !value.trim().isEmpty()) {
+            json.put(key, value.trim());
         }
     }
 
