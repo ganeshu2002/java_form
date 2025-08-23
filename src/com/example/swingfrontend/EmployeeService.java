@@ -1,95 +1,60 @@
-// package com.example.swingfrontend;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class EmployeeService {
 
     private static final String BASE_URL = "http://localhost:8080/api/employees";
-    private HttpClient client;
 
-    public EmployeeService() {
-        client = HttpClient.newHttpClient();
+    // Send POST Request
+    public static String addEmployee(JSONObject emp) throws Exception {
+        return sendRequest(BASE_URL, "POST", emp.toString());
     }
 
-    public String createEmployee(String json) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        System.out.println("POST Request URL: " + BASE_URL);
-        System.out.println("POST Body: " + json);
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Response: " + response.statusCode() + " | " + response.body());
-
-        if (response.statusCode() == 201 || response.statusCode() == 200) {
-            return "Employee added successfully!";
-        } else {
-            return "Error: " + response.statusCode() + " | " + response.body();
-        }
+    // Send PUT Request
+    public static String updateEmployee(long id, JSONObject emp) throws Exception {
+        return sendRequest(BASE_URL + "/" + id, "PUT", emp.toString());
     }
 
-    public String updateEmployee(Long id, String json) throws IOException, InterruptedException {
-        String url = BASE_URL + "/" + id;
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        System.out.println("PUT Request URL: " + url);
-        System.out.println("PUT Body: " + json);
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Response: " + response.statusCode() + " | " + response.body());
-
-        if (response.statusCode() == 200) {
-            return "Employee updated successfully!";
-        } else {
-            return "Error: " + response.statusCode() + " | " + response.body();
-        }
+    // Delete Employee
+    public static String deleteEmployee(long id) throws Exception {
+        return sendRequest(BASE_URL + "/" + id, "DELETE", null);
     }
 
-    public String deleteEmployee(Long id) throws IOException, InterruptedException {
-        String url = BASE_URL + "/" + id;
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .DELETE()
-                .build();
-
-        System.out.println("DELETE Request URL: " + url);
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Response: " + response.statusCode() + " | " + response.body());
-
-        if (response.statusCode() == 200) {
-            return "Employee deleted successfully!";
-        } else {
-            return "Error: " + response.statusCode() + " | " + response.body();
-        }
+    // Get All Employees
+    public static JSONArray getAllEmployees() throws Exception {
+        String response = sendRequest(BASE_URL, "GET", null);
+        return new JSONArray(response); // Backend returns a JSON array
     }
 
-    public String getAllEmployees() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL))
-                .GET()
-                .build();
+    // Get Employee by ID
+    public static JSONObject getEmployeeById(long id) throws Exception {
+        String response = sendRequest(BASE_URL + "/" + id, "GET", null);
+        return new JSONObject(response);
+    }
 
-        System.out.println("GET Request URL: " + BASE_URL);
+    private static String sendRequest(String urlString, String method, String jsonInput) throws Exception {
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Response: " + response.statusCode() + " | " + response.body());
-
-        if (response.statusCode() == 200) {
-            return response.body();  // Return raw JSON array
-        } else {
-            return "[]";  // Return empty array on error
+        if (jsonInput != null) {
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(jsonInput.getBytes());
+            }
         }
+
+        InputStream is = (conn.getResponseCode() < 400) ? conn.getInputStream() : conn.getErrorStream();
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) sb.append(line);
+
+        return sb.toString();
     }
 }
