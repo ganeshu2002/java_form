@@ -1,351 +1,300 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.*;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class EmployeeForm extends JFrame {
-    private JTextField firstNameField, lastNameField, dobField, dojField, ageField, addressField, mobileField, cityField, stateField, countryField;
-    private JTextField tenthSchool, tenthObt, tenthTotal, tenthPerc;
-    private JTextField twelfthSchool, twelfthObt, twelfthTotal, twelfthPerc;
-    private JTextField gradSchool, gradObt, gradTotal, gradPerc;
+    private JTextField idField, firstNameField, lastNameField, dobField, dojField, ageField, addressField, cityField, stateField, countryField, mobileField;
+    private JTable educationTable;
     private JTextArea resultArea;
-    private JButton addBtn, updateBtn, deleteBtn, findBtn, getAllBtn;
-    private JTextField idField;
-
-    // Hardcoded City → State, Country
-    private Map<String, String[]> cityMap = new HashMap<>();
+    private EmployeeService employeeService;
 
     public EmployeeForm() {
+        employeeService = new EmployeeService();
         setTitle("Employee Management");
         setSize(900, 750);
-        setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-        // City mapping
-        cityMap.put("Kanpur", new String[]{"Uttar Pradesh", "India"});
-        cityMap.put("Mumbai", new String[]{"Maharashtra", "India"});
-        cityMap.put("Delhi", new String[]{"Delhi", "India"});
-        cityMap.put("Bangalore", new String[]{"Karnataka", "India"});
-        cityMap.put("Kolkata", new String[]{"West Bengal", "India"});
+        JPanel inputPanel = new JPanel(new GridLayout(12, 2, 10, 10));
 
-        JLabel lblId = new JLabel("Employee ID:");
-        lblId.setBounds(30, 20, 100, 25);
-        add(lblId);
+        inputPanel.add(new JLabel("Employee ID:"));
         idField = new JTextField();
-        idField.setBounds(150, 20, 150, 25);
-        add(idField);
+        inputPanel.add(idField);
 
-        JLabel lblFirst = new JLabel("First Name:");
-        lblFirst.setBounds(30, 60, 100, 25);
-        add(lblFirst);
+        inputPanel.add(new JLabel("First Name:"));
         firstNameField = new JTextField();
-        firstNameField.setBounds(150, 60, 150, 25);
-        add(firstNameField);
+        inputPanel.add(firstNameField);
 
-        JLabel lblLast = new JLabel("Last Name:");
-        lblLast.setBounds(30, 100, 100, 25);
-        add(lblLast);
+        inputPanel.add(new JLabel("Last Name:"));
         lastNameField = new JTextField();
-        lastNameField.setBounds(150, 100, 150, 25);
-        add(lastNameField);
+        inputPanel.add(lastNameField);
 
-        JLabel lblDob = new JLabel("DOB (yyyy-MM-dd):");
-        lblDob.setBounds(30, 140, 150, 25);
-        add(lblDob);
+        inputPanel.add(new JLabel("Date of Birth (yyyy-mm-dd):"));
         dobField = new JTextField();
-        dobField.setBounds(180, 140, 120, 25);
-        add(dobField);
+        inputPanel.add(dobField);
 
-        JLabel lblAge = new JLabel("Age:");
-        lblAge.setBounds(320, 140, 50, 25);
-        add(lblAge);
-        ageField = new JTextField();
-        ageField.setBounds(370, 140, 50, 25);
-        ageField.setEditable(false);
-        add(ageField);
-
-        JLabel lblDoj = new JLabel("DOJ (yyyy-MM-dd):");
-        lblDoj.setBounds(30, 180, 150, 25);
-        add(lblDoj);
+        inputPanel.add(new JLabel("Date of Joining (yyyy-mm-dd):"));
         dojField = new JTextField();
-        dojField.setBounds(180, 180, 120, 25);
-        add(dojField);
+        inputPanel.add(dojField);
 
-        JLabel lblAddress = new JLabel("Address:");
-        lblAddress.setBounds(30, 220, 100, 25);
-        add(lblAddress);
+        inputPanel.add(new JLabel("Age:"));
+        ageField = new JTextField();
+        ageField.setEditable(false);
+        inputPanel.add(ageField);
+
+        inputPanel.add(new JLabel("Address:"));
         addressField = new JTextField();
-        addressField.setBounds(150, 220, 250, 25);
-        add(addressField);
+        inputPanel.add(addressField);
 
-        JLabel lblMobile = new JLabel("Mobile:");
-        lblMobile.setBounds(30, 260, 100, 25);
-        add(lblMobile);
-        mobileField = new JTextField();
-        mobileField.setBounds(150, 260, 150, 25);
-        add(mobileField);
-
-        JLabel lblCity = new JLabel("City:");
-        lblCity.setBounds(30, 300, 100, 25);
-        add(lblCity);
+        inputPanel.add(new JLabel("City:"));
         cityField = new JTextField();
-        cityField.setBounds(150, 300, 150, 25);
-        add(cityField);
+        inputPanel.add(cityField);
 
-        JLabel lblState = new JLabel("State:");
-        lblState.setBounds(320, 300, 50, 25);
-        add(lblState);
+        inputPanel.add(new JLabel("State:"));
         stateField = new JTextField();
-        stateField.setBounds(370, 300, 150, 25);
         stateField.setEditable(false);
-        add(stateField);
+        inputPanel.add(stateField);
 
-        JLabel lblCountry = new JLabel("Country:");
-        lblCountry.setBounds(540, 300, 60, 25);
-        add(lblCountry);
+        inputPanel.add(new JLabel("Country:"));
         countryField = new JTextField();
-        countryField.setBounds(600, 300, 150, 25);
         countryField.setEditable(false);
-        add(countryField);
+        inputPanel.add(countryField);
 
-        JLabel lblEdu = new JLabel("Education Details:");
-        lblEdu.setBounds(30, 340, 150, 25);
-        add(lblEdu);
+        inputPanel.add(new JLabel("Mobile No:"));
+        mobileField = new JTextField();
+        inputPanel.add(mobileField);
 
-        // Tenth
-        JLabel lblTenth = new JLabel("10th:");
-        lblTenth.setBounds(30, 370, 50, 25);
-        add(lblTenth);
-        tenthSchool = new JTextField("School Name");
-        tenthSchool.setBounds(80, 370, 150, 25);
-        add(tenthSchool);
-        tenthObt = new JTextField("Obt");
-        tenthObt.setBounds(240, 370, 50, 25);
-        add(tenthObt);
-        tenthTotal = new JTextField("Total");
-        tenthTotal.setBounds(300, 370, 50, 25);
-        add(tenthTotal);
-        tenthPerc = new JTextField("%");
-        tenthPerc.setBounds(360, 370, 50, 25);
-        tenthPerc.setEditable(false);
-        add(tenthPerc);
+        add(inputPanel, BorderLayout.NORTH);
 
-        // Twelfth
-        JLabel lblTwelfth = new JLabel("12th:");
-        lblTwelfth.setBounds(30, 410, 50, 25);
-        add(lblTwelfth);
-        twelfthSchool = new JTextField("School Name");
-        twelfthSchool.setBounds(80, 410, 150, 25);
-        add(twelfthSchool);
-        twelfthObt = new JTextField("Obt");
-        twelfthObt.setBounds(240, 410, 50, 25);
-        add(twelfthObt);
-        twelfthTotal = new JTextField("Total");
-        twelfthTotal.setBounds(300, 410, 50, 25);
-        add(twelfthTotal);
-        twelfthPerc = new JTextField("%");
-        twelfthPerc.setBounds(360, 410, 50, 25);
-        twelfthPerc.setEditable(false);
-        add(twelfthPerc);
+        String[] columns = {"Level", "School/College", "Obtained", "Total", "Percentage"};
+        String[][] data = {
+                {"Tenth", "", "", "", ""},
+                {"Twelfth", "", "", "", ""},
+                {"Graduation", "", "", "", ""}
+        };
 
-        // Graduation
-        JLabel lblGrad = new JLabel("Grad:");
-        lblGrad.setBounds(30, 450, 50, 25);
-        add(lblGrad);
-        gradSchool = new JTextField("College Name");
-        gradSchool.setBounds(80, 450, 150, 25);
-        add(gradSchool);
-        gradObt = new JTextField("Obt");
-        gradObt.setBounds(240, 450, 50, 25);
-        add(gradObt);
-        gradTotal = new JTextField("Total");
-        gradTotal.setBounds(300, 450, 50, 25);
-        add(gradTotal);
-        gradPerc = new JTextField("%");
-        gradPerc.setBounds(360, 450, 50, 25);
-        gradPerc.setEditable(false);
-        add(gradPerc);
+        educationTable = new JTable(new DefaultTableModel(data, columns));
+        JScrollPane tableScrollPane = new JScrollPane(educationTable);
+        tableScrollPane.setPreferredSize(new Dimension(800, 80));
+        add(tableScrollPane, BorderLayout.CENTER);
 
-        // Buttons
-        addBtn = new JButton("Add");
-        addBtn.setBounds(30, 500, 80, 30);
-        add(addBtn);
-        updateBtn = new JButton("Update");
-        updateBtn.setBounds(120, 500, 80, 30);
-        add(updateBtn);
-        deleteBtn = new JButton("Delete");
-        deleteBtn.setBounds(210, 500, 80, 30);
-        add(deleteBtn);
-        findBtn = new JButton("Find");
-        findBtn.setBounds(300, 500, 80, 30);
-        add(findBtn);
-        getAllBtn = new JButton("Get All");
-        getAllBtn.setBounds(390, 500, 100, 30);
-        add(getAllBtn);
+        JPanel buttonPanel = new JPanel();
+        JButton addButton = new JButton("Add Employee");
+        JButton updateButton = new JButton("Update Employee");
+        JButton deleteButton = new JButton("Delete Employee");
+        JButton getButton = new JButton("Get All");
+        JButton findButton = new JButton("Find");
 
-        // Result area
-        resultArea = new JTextArea();
-        resultArea.setBounds(30, 550, 800, 130);
+        buttonPanel.add(addButton);
+        buttonPanel.add(updateButton);
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(getButton);
+        buttonPanel.add(findButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        resultArea = new JTextArea(10, 80);
         resultArea.setEditable(false);
-        add(resultArea);
+        add(new JScrollPane(resultArea), BorderLayout.EAST);
 
         // Listeners
-        dobField.addFocusListener(new FocusAdapter() {
-            public void focusLost(FocusEvent e) {
+        cityField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (cityField.getText().equalsIgnoreCase("Kanpur")) {
+                    stateField.setText("Uttar Pradesh");
+                    countryField.setText("India");
+                }
+            }
+        });
+
+        dobField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
                 calculateAge();
             }
         });
 
-        cityField.addFocusListener(new FocusAdapter() {
-            public void focusLost(FocusEvent e) {
-                autoFillStateCountry();
-            }
-        });
-
-        FocusAdapter percListener = new FocusAdapter() {
-            public void focusLost(FocusEvent e) {
-                calculatePercentage();
-            }
-        };
-        tenthObt.addFocusListener(percListener);
-        tenthTotal.addFocusListener(percListener);
-        twelfthObt.addFocusListener(percListener);
-        twelfthTotal.addFocusListener(percListener);
-        gradObt.addFocusListener(percListener);
-        gradTotal.addFocusListener(percListener);
-
-        // Button Actions
-        addBtn.addActionListener(e -> addEmployee());
-        updateBtn.addActionListener(e -> updateEmployee());
-        deleteBtn.addActionListener(e -> deleteEmployee());
-        findBtn.addActionListener(e -> findEmployee());
-        getAllBtn.addActionListener(e -> getAllEmployees());
+        addButton.addActionListener(e -> addEmployee());
+        updateButton.addActionListener(e -> updateEmployee());
+        deleteButton.addActionListener(e -> deleteEmployee());
+        getButton.addActionListener(e -> getAllEmployees());
+        findButton.addActionListener(e -> findEmployee());
     }
 
     private void calculateAge() {
         try {
-            LocalDate dob = LocalDate.parse(dobField.getText());
-            int age = Period.between(dob, LocalDate.now()).getYears();
-            ageField.setText(String.valueOf(age));
-        } catch (Exception ex) {
-            ageField.setText("");
-        }
-    }
-
-    private void autoFillStateCountry() {
-        String city = cityField.getText().trim();
-        if (cityMap.containsKey(city)) {
-            stateField.setText(cityMap.get(city)[0]);
-            countryField.setText(cityMap.get(city)[1]);
-        }
-    }
-
-    private void calculatePercentage() {
-        calculateSinglePerc(tenthObt, tenthTotal, tenthPerc);
-        calculateSinglePerc(twelfthObt, twelfthTotal, twelfthPerc);
-        calculateSinglePerc(gradObt, gradTotal, gradPerc);
-    }
-
-    private void calculateSinglePerc(JTextField obt, JTextField total, JTextField perc) {
-        try {
-            double o = Double.parseDouble(obt.getText());
-            double t = Double.parseDouble(total.getText());
-            double p = (o / t) * 100;
-            perc.setText(String.format("%.2f%%", p));
-        } catch (Exception ex) {
-            perc.setText("");
+            String dob = dobField.getText().trim();
+            if (!dob.isEmpty()) {
+                LocalDate birthDate = LocalDate.parse(dob);
+                int age = Period.between(birthDate, LocalDate.now()).getYears();
+                ageField.setText(String.valueOf(age));
+            }
+        } catch (Exception ignored) {
         }
     }
 
     private JSONObject buildJson() {
         JSONObject json = new JSONObject();
+        if (!idField.getText().trim().isEmpty()) {
+            json.put("userId", Integer.parseInt(idField.getText().trim()));
+        }
         json.put("firstName", firstNameField.getText());
         json.put("lastName", lastNameField.getText());
         json.put("dob", dobField.getText());
         json.put("doj", dojField.getText());
-        json.put("age", Integer.parseInt(ageField.getText()));
+        json.put("age", ageField.getText().isEmpty() ? 0 : Integer.parseInt(ageField.getText()));
         json.put("address", addressField.getText());
-        json.put("mobileNo", mobileField.getText());
         json.put("city", cityField.getText());
         json.put("state", stateField.getText());
         json.put("country", countryField.getText());
+        json.put("mobileNo", mobileField.getText());
 
-        JSONArray eduArray = new JSONArray();
-        eduArray.put(createEducationJson("Tenth", tenthSchool.getText(), tenthObt.getText(), tenthTotal.getText(), tenthPerc.getText()));
-        eduArray.put(createEducationJson("Twelfth", twelfthSchool.getText(), twelfthObt.getText(), twelfthTotal.getText(), twelfthPerc.getText()));
-        eduArray.put(createEducationJson("Graduation", gradSchool.getText(), gradObt.getText(), gradTotal.getText(), gradPerc.getText()));
+        JSONArray educationArray = new JSONArray();
+        DefaultTableModel model = (DefaultTableModel) educationTable.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            JSONObject edu = new JSONObject();
+            edu.put("level", model.getValueAt(i, 0));
+            edu.put("schoolOrCollegeName", model.getValueAt(i, 1));
+            edu.put("obtainedScore", model.getValueAt(i, 2));
+            edu.put("totalScore", model.getValueAt(i, 3));
+            edu.put("percentage", model.getValueAt(i, 4));
+            educationArray.put(edu);
+        }
+        json.put("education", educationArray);
 
-        json.put("education", eduArray);
         return json;
     }
 
-    private JSONObject createEducationJson(String level, String name, String obt, String total, String perc) {
-        JSONObject obj = new JSONObject();
-        obj.put("level", level);
-        obj.put("schoolOrCollegeName", name);
-        obj.put("obtainedScore", obt);
-        obj.put("totalScore", total);
-        obj.put("percentage", perc);
-        return obj;
-    }
-
     private void addEmployee() {
-        sendRequest("POST", "http://localhost:8080/api/employees", buildJson().toString());
-    }
-
-    private void updateEmployee() {
-        String id = idField.getText();
-        sendRequest("PUT", "http://localhost:8080/api/employees/" + id, buildJson().toString());
-    }
-
-    private void deleteEmployee() {
-        String id = idField.getText();
-        sendRequest("DELETE", "http://localhost:8080/api/employees/" + id, null);
-    }
-
-    private void findEmployee() {
-        String id = idField.getText();
-        sendRequest("GET", "http://localhost:8080/api/employees/" + id, null);
-    }
-
-    private void getAllEmployees() {
-        sendRequest("GET", "http://localhost:8080/api/employees", null);
-    }
-
-    private void sendRequest(String method, String urlString, String jsonInput) {
         try {
-            URL url = new URL(urlString);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod(method);
-            con.setRequestProperty("Content-Type", "application/json");
-            con.setDoOutput(true);
-
-            if (jsonInput != null) {
-                try (OutputStream os = con.getOutputStream()) {
-                    os.write(jsonInput.getBytes());
-                }
-            }
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                response.append(line);
-            }
-            resultArea.setText(response.toString());
+            JSONObject json = buildJson();
+            String response = employeeService.sendRequest("POST", "http://localhost:8080/api/employees", json.toString());
+            resultArea.setText("Employee Added Successfully:\n" + formatJson(response));
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
         }
     }
 
+    private void updateEmployee() {
+        try {
+            if (idField.getText().trim().isEmpty()) {
+                resultArea.setText("Please enter Employee ID to update.");
+                return;
+            }
+            JSONObject json = buildJson();
+            String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
+            String response = employeeService.sendRequest("PUT", url, json.toString());
+            resultArea.setText("Employee Updated Successfully:\n" + formatJson(response));
+        } catch (Exception e) {
+            resultArea.setText("Error: " + e.getMessage());
+        }
+    }
+
+    private void deleteEmployee() {
+        try {
+            if (idField.getText().trim().isEmpty()) {
+                resultArea.setText("Please enter Employee ID to delete.");
+                return;
+            }
+            String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
+            String response = employeeService.sendRequest("DELETE", url, null);
+            resultArea.setText("Deleted Successfully:\n" + response);
+        } catch (Exception e) {
+            resultArea.setText("Delete failed: " + e.getMessage());
+        }
+    }
+
+    private void getAllEmployees() {
+        try {
+            String response = employeeService.sendRequest("GET", "http://localhost:8080/api/employees", null);
+            resultArea.setText("All Employees:\n" + formatEmployeeList(response));
+        } catch (Exception e) {
+            resultArea.setText("Error: " + e.getMessage());
+        }
+    }
+
+    private void findEmployee() {
+        String firstName = firstNameField.getText().trim();
+        String dob = dobField.getText().trim();
+        if (firstName.isEmpty()) {
+            resultArea.setText("Please enter First Name to search.");
+            return;
+        }
+
+        try {
+            StringBuilder urlBuilder = new StringBuilder("http://localhost:8080/api/employees/search?firstName=" + firstName);
+            if (!dob.isEmpty()) {
+                urlBuilder.append("&dob=").append(dob);
+            }
+            String response = employeeService.sendRequest("GET", urlBuilder.toString(), null);
+            resultArea.setText("Search Results:\n" + formatEmployeeList(response));
+        } catch (Exception e) {
+            resultArea.setText("Error: " + e.getMessage());
+        }
+    }
+
+    private String formatEmployeeList(String response) {
+        StringBuilder formatted = new StringBuilder();
+        try {
+            JSONArray arr = new JSONArray(response);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject emp = arr.getJSONObject(i);
+                formatted.append(formatSingleEmployee(emp)).append("\n\n");
+            }
+        } catch (Exception e) {
+            try {
+                JSONObject emp = new JSONObject(response);
+                formatted.append(formatSingleEmployee(emp));
+            } catch (Exception ignored) {
+                formatted.append(response);
+            }
+        }
+        return formatted.toString();
+    }
+
+    private String formatSingleEmployee(JSONObject emp) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID: ").append(emp.optInt("userId")).append("\n");
+        sb.append("Name: ").append(emp.optString("firstName")).append(" ").append(emp.optString("lastName")).append("\n");
+        sb.append("DOB: ").append(emp.optString("dob")).append("\n");
+        sb.append("DOJ: ").append(emp.optString("doj")).append("\n");
+        sb.append("Age: ").append(emp.optInt("age")).append("\n");
+        sb.append("Address: ").append(emp.optString("address")).append(", ").append(emp.optString("city")).append(", ")
+                .append(emp.optString("state")).append(", ").append(emp.optString("country")).append("\n");
+        sb.append("Mobile: ").append(emp.optString("mobileNo")).append("\n");
+        sb.append("Education:\n");
+        JSONArray eduArr = emp.optJSONArray("education");
+        if (eduArr != null) {
+            for (int j = 0; j < eduArr.length(); j++) {
+                JSONObject edu = eduArr.getJSONObject(j);
+                sb.append(" - ").append(edu.optString("level")).append(": ")
+                        .append(edu.optString("schoolOrCollegeName")).append(", ")
+                        .append("Obtained: ").append(edu.optString("obtainedScore")).append("/")
+                        .append(edu.optString("totalScore")).append(", ")
+                        .append("Percent: ").append(edu.optString("percentage")).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    private String formatJson(String json) {
+        try {
+            JSONObject obj = new JSONObject(json);
+            return obj.toString(4);
+        } catch (Exception e) {
+            return json;
+        }
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new EmployeeForm().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            new EmployeeForm().setVisible(true);
+        });
     }
 }
