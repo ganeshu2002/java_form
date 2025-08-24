@@ -1,12 +1,9 @@
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -81,7 +78,30 @@ public class EmployeeForm extends JFrame {
                 {"Graduation", "", "", "", ""}
         };
 
-        educationTable = new JTable(new DefaultTableModel(data, columns));
+        DefaultTableModel model = new DefaultTableModel(data, columns);
+        educationTable = new JTable(model);
+
+        // ✅ Auto calculate percentage when Obtained or Total changes
+        model.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int col = e.getColumn();
+            if (col == 2 || col == 3) {
+                try {
+                    String obtainedStr = (String) model.getValueAt(row, 2);
+                    String totalStr = (String) model.getValueAt(row, 3);
+                    if (obtainedStr != null && totalStr != null && !obtainedStr.isEmpty() && !totalStr.isEmpty()) {
+                        double obtained = Double.parseDouble(obtainedStr);
+                        double total = Double.parseDouble(totalStr);
+                        if (total > 0) {
+                            double percentage = (obtained / total) * 100;
+                            model.setValueAt(String.format("%.2f", percentage), row, 4);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        });
+
         JScrollPane tableScrollPane = new JScrollPane(educationTable);
         tableScrollPane.setPreferredSize(new Dimension(800, 80));
         add(tableScrollPane, BorderLayout.CENTER);
@@ -92,32 +112,45 @@ public class EmployeeForm extends JFrame {
         JButton deleteButton = new JButton("Delete Employee");
         JButton getButton = new JButton("Get All");
         JButton findButton = new JButton("Find");
+        JButton clearButton = new JButton("Clear");
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(getButton);
         buttonPanel.add(findButton);
+        buttonPanel.add(clearButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         resultArea = new JTextArea(10, 80);
         resultArea.setEditable(false);
         add(new JScrollPane(resultArea), BorderLayout.EAST);
 
-        // Listeners
+        // ✅ City -> Auto State & Country
         cityField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                if (cityField.getText().equalsIgnoreCase("Kanpur")) {
+                String city = cityField.getText().trim();
+                if (city.equalsIgnoreCase("Kanpur")) {
                     stateField.setText("Uttar Pradesh");
                     countryField.setText("India");
+                } else {
+                    stateField.setText("");
+                    countryField.setText("");
                 }
             }
         });
 
+        // ✅ DOB -> Auto Age
         dobField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 calculateAge();
             }
+        });
+
+        dobField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { calculateAge(); }
+            public void removeUpdate(DocumentEvent e) { calculateAge(); }
+            public void changedUpdate(DocumentEvent e) { calculateAge(); }
         });
 
         addButton.addActionListener(e -> addEmployee());
@@ -125,6 +158,7 @@ public class EmployeeForm extends JFrame {
         deleteButton.addActionListener(e -> deleteEmployee());
         getButton.addActionListener(e -> getAllEmployees());
         findButton.addActionListener(e -> findEmployee());
+        clearButton.addActionListener(e -> clearFields());
     }
 
     private void calculateAge() {
@@ -134,8 +168,11 @@ public class EmployeeForm extends JFrame {
                 LocalDate birthDate = LocalDate.parse(dob);
                 int age = Period.between(birthDate, LocalDate.now()).getYears();
                 ageField.setText(String.valueOf(age));
+            } else {
+                ageField.setText("");
             }
         } catch (Exception ignored) {
+            ageField.setText("");
         }
     }
 
@@ -176,6 +213,7 @@ public class EmployeeForm extends JFrame {
             JSONObject json = buildJson();
             String response = employeeService.sendRequest("POST", "http://localhost:8080/api/employees", json.toString());
             resultArea.setText("Employee Added Successfully:\n" + formatJson(response));
+            clearFields();
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
         }
@@ -191,6 +229,7 @@ public class EmployeeForm extends JFrame {
             String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
             String response = employeeService.sendRequest("PUT", url, json.toString());
             resultArea.setText("Employee Updated Successfully:\n" + formatJson(response));
+            clearFields();
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
         }
@@ -205,6 +244,7 @@ public class EmployeeForm extends JFrame {
             String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
             String response = employeeService.sendRequest("DELETE", url, null);
             resultArea.setText("Deleted Successfully:\n" + response);
+            clearFields();
         } catch (Exception e) {
             resultArea.setText("Delete failed: " + e.getMessage());
         }
@@ -236,6 +276,27 @@ public class EmployeeForm extends JFrame {
             resultArea.setText("Search Results:\n" + formatEmployeeList(response));
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
+        }
+    }
+
+    private void clearFields() {
+        idField.setText("");
+        firstNameField.setText("");
+        lastNameField.setText("");
+        dobField.setText("");
+        dojField.setText("");
+        ageField.setText("");
+        addressField.setText("");
+        cityField.setText("");
+        stateField.setText("");
+        countryField.setText("");
+        mobileField.setText("");
+
+        DefaultTableModel model = (DefaultTableModel) educationTable.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            for (int j = 1; j < model.getColumnCount(); j++) {
+                model.setValueAt("", i, j);
+            }
         }
     }
 
@@ -293,8 +354,6 @@ public class EmployeeForm extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new EmployeeForm().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new EmployeeForm().setVisible(true));
     }
 }
