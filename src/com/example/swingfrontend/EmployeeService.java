@@ -39,7 +39,7 @@ public class EmployeeService {
     }
 
     /**
-     * ✅ New method: Fetch all employees and return as structured data
+     *  New method: Fetch all employees and return as structured data
      * This is useful for JTable integration in UI
      */
     public List<Map<String, String>> getAllEmployees(String urlString) {

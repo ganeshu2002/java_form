@@ -133,7 +133,88 @@ public class EmployeeForm extends JFrame {
                 if (city.equalsIgnoreCase("Kanpur")) {
                     stateField.setText("Uttar Pradesh");
                     countryField.setText("India");
-                } else {
+                } 
+                else if (city.equalsIgnoreCase("Delhi")) {
+                    stateField.setText("Delhi");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Mumbai")) {
+                    stateField.setText("Maharashtra");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Bangalore") || city.equalsIgnoreCase("Bengaluru")) {
+                    stateField.setText("Karnataka");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Chennai")) {
+                    stateField.setText("Tamil Nadu");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Kolkata")) {
+                    stateField.setText("West Bengal");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Hyderabad")) {
+                    stateField.setText("Telangana");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Pune")) {
+                    stateField.setText("Maharashtra");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Ahmedabad")) {
+                    stateField.setText("Gujarat");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Jaipur")) {
+                    stateField.setText("Rajasthan");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Lucknow")) {
+                    stateField.setText("Uttar Pradesh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Patna")) {
+                    stateField.setText("Bihar");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Chandigarh")) {
+                    stateField.setText("Chandigarh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Bhopal")) {
+                    stateField.setText("Madhya Pradesh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Indore")) {
+                    stateField.setText("Madhya Pradesh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Vadodara")) {
+                    stateField.setText("Gujarat");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Surat")) {
+                    stateField.setText("Gujarat");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Nagpur")) {
+                    stateField.setText("Maharashtra");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Varanasi")) {
+                    stateField.setText("Uttar Pradesh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Agra")) {
+                    stateField.setText("Uttar Pradesh");
+                    countryField.setText("India");
+                }
+                else if (city.equalsIgnoreCase("Allahabad") || city.equalsIgnoreCase("Prayagraj")) {
+                    stateField.setText("Uttar Pradesh");
+                    countryField.setText("India");
+                }
+                else {
                     stateField.setText("");
                     countryField.setText("");
                 }
@@ -262,23 +343,54 @@ public class EmployeeForm extends JFrame {
     private void findEmployee() {
         String firstName = firstNameField.getText().trim();
         String dob = dobField.getText().trim();
-        if (firstName.isEmpty()) {
-            resultArea.setText("Please enter First Name to search.");
+        
+        if (firstName.isEmpty() && dob.isEmpty()) {
+            resultArea.setText("Please enter either First Name or Date of Birth to search.");
             return;
         }
 
         try {
-            StringBuilder urlBuilder = new StringBuilder("http://localhost:8080/api/employees/search?firstName=" + firstName);
-            if (!dob.isEmpty()) {
-                urlBuilder.append("&dob=").append(dob);
+            // Get all employees first using the existing API
+            String response = employeeService.sendRequest("GET", "http://localhost:8080/api/employees", null);
+            
+            // Parse the response and filter results
+            JSONArray allEmployees = new JSONArray(response);
+            JSONArray filteredEmployees = new JSONArray();
+            
+            for (int i = 0; i < allEmployees.length(); i++) {
+                JSONObject emp = allEmployees.getJSONObject(i);
+                String empFirstName = emp.optString("firstName", "");
+                String empDob = emp.optString("dob", "");
+                
+                // Check if employee matches search criteria
+                boolean matches = false;
+                
+                // Check first name (case-insensitive partial match)
+                if (!firstName.isEmpty() && empFirstName.toLowerCase().contains(firstName.toLowerCase())) {
+                    matches = true;
+                }
+                
+                // Check DOB (exact match)
+                if (!dob.isEmpty() && empDob.contains(dob)) {
+                    matches = true;
+                }
+                
+                // If either criteria matches, add to filtered results
+                if (matches) {
+                    filteredEmployees.put(emp);
+                }
             }
-            String response = employeeService.sendRequest("GET", urlBuilder.toString(), null);
-            resultArea.setText("Search Results:\n" + formatEmployeeList(response));
+            
+            if (filteredEmployees.length() == 0) {
+                resultArea.setText("No employees found matching the search criteria.");
+            } else {
+                resultArea.setText("Search Results (" + filteredEmployees.length() + " found):\n" + formatEmployeeList(filteredEmployees.toString()));
+            }
+            
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
         }
     }
-
     private void clearFields() {
         idField.setText("");
         firstNameField.setText("");
