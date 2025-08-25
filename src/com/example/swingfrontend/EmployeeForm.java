@@ -14,17 +14,17 @@ import java.util.LinkedHashMap;
 public class EmployeeForm extends JFrame {
     private JTextField idField, firstNameField, lastNameField, dobField, dojField, ageField, addressField, cityField, stateField, countryField, mobileField;
     private JTable educationTable;
-    private JTable employeeTable; // ✅ New table for displaying employees
+    private JTable employeeTable; //  New table for displaying employees
     private EmployeeService employeeService;
 
     public EmployeeForm() {
         employeeService = new EmployeeService();
         setTitle("Employee Management System");
-        setSize(1200, 800); // ✅ Increased window size for better layout
+        setSize(1200, 800); //  Increased window size for better layout
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // ✅ Create main panel with better organization
+        //  Create main panel with better organization
         JPanel mainPanel = new JPanel(new BorderLayout());
         
         // Input panel at top
@@ -41,13 +41,13 @@ public class EmployeeForm extends JFrame {
         
         add(mainPanel, BorderLayout.CENTER);
 
-        // ✅ City -> Auto State & Country
+        //  City -> Auto State & Country
         setupCityAutoComplete();
         
-        // ✅ Setup age calculation
+        //  Setup age calculation
         setupAgeCalculation();
         
-        // ✅ Setup button actions
+        //  Setup button actions
         setupButtonActions();
     }
     
@@ -127,7 +127,7 @@ public class EmployeeForm extends JFrame {
         educationTable.setRowHeight(25);
         educationTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         
-        // ✅ Auto calculate percentage when Obtained or Total changes
+        //  Auto calculate percentage when Obtained or Total changes
         eduModel.addTableModelListener(e -> {
             int row = e.getFirstRow();
             int col = e.getColumn();
@@ -156,7 +156,7 @@ public class EmployeeForm extends JFrame {
         JPanel employeePanel = new JPanel(new BorderLayout());
         employeePanel.setBorder(BorderFactory.createTitledBorder("Employee List"));
         
-        // ✅ Updated columns to show separate education columns
+        //  Updated columns to show separate education columns
         String[] empColumns = {"ID", "Name", "DOB", "DOJ", "Age", "Address", "City", "State", "Country", "Mobile", "Tenth", "Twelfth", "Graduation"};
         DefaultTableModel empModel = new DefaultTableModel(empColumns, 0) {
             @Override
@@ -166,11 +166,11 @@ public class EmployeeForm extends JFrame {
         };
         
         employeeTable = new JTable(empModel);
-        employeeTable.setRowHeight(35); // ✅ Increased row height for better readability
+        employeeTable.setRowHeight(35); //  Increased row height for better readability
         employeeTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
-        // ✅ Set column widths for better display
+        //  Set column widths for better display
         employeeTable.getColumnModel().getColumn(0).setPreferredWidth(50);   // ID
         employeeTable.getColumnModel().getColumn(1).setPreferredWidth(120);  // Name
         employeeTable.getColumnModel().getColumn(2).setPreferredWidth(80);   // DOB
@@ -185,7 +185,7 @@ public class EmployeeForm extends JFrame {
         employeeTable.getColumnModel().getColumn(11).setPreferredWidth(120); // Twelfth
         employeeTable.getColumnModel().getColumn(12).setPreferredWidth(120); // Graduation
         
-        // ✅ Add selection listener to populate form fields
+        //  Add selection listener to populate form fields
         employeeTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = employeeTable.getSelectedRow();
@@ -196,7 +196,7 @@ public class EmployeeForm extends JFrame {
         });
         
         JScrollPane empScrollPane = new JScrollPane(employeeTable);
-        empScrollPane.setPreferredSize(new Dimension(800, 250)); // ✅ Increased height
+        empScrollPane.setPreferredSize(new Dimension(800, 250)); //  Increased height
         employeePanel.add(empScrollPane, BorderLayout.CENTER);
         
         // Add both panels to center
@@ -207,21 +207,21 @@ public class EmployeeForm extends JFrame {
     }
     
     private JPanel createButtonPanel() {
-        // ✅ Use GridLayout to ensure all buttons are visible in the same line
+        //  Use GridLayout to ensure all buttons are visible in the same line
         JPanel buttonPanel = new JPanel(new GridLayout(1, 6, 5, 5));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        JButton addButton = new JButton("➕ Add");
-        JButton updateButton = new JButton("✏ Update");
-        JButton deleteButton = new JButton("🗑 Delete");
-        JButton getButton = new JButton("📋 Get All");
-        JButton findButton = new JButton("🔍 Find");
-        JButton clearButton = new JButton("🧹 Clear");
+        JButton addButton = new JButton(" Add");
+        JButton updateButton = new JButton(" Update");
+        JButton deleteButton = new JButton(" Delete");
+        JButton getButton = new JButton(" Get All");
+        JButton findButton = new JButton(" Find");
+        JButton clearButton = new JButton(" Clear");
         
-        // ✅ Style buttons
+        //  Style buttons
         Color buttonColor = new Color(70, 130, 180);
         Color buttonTextColor = Color.WHITE;
-        Font buttonFont = new Font("Arial", Font.BOLD, 11); // ✅ Smaller font
+        Font buttonFont = new Font("Arial", Font.BOLD, 11); //  Smaller font
         
         JButton[] buttons = {addButton, updateButton, deleteButton, getButton, findButton, clearButton};
         for (JButton button : buttons) {
@@ -230,7 +230,7 @@ public class EmployeeForm extends JFrame {
             button.setFont(buttonFont);
             button.setFocusPainted(false);
             button.setBorderPainted(false);
-            button.setPreferredSize(new Dimension(120, 30)); // ✅ Smaller size
+            button.setPreferredSize(new Dimension(120, 30)); //  Smaller size
         }
         
         buttonPanel.add(addButton);
@@ -295,20 +295,20 @@ public class EmployeeForm extends JFrame {
                     stateField.setText("Bihar");
                     countryField.setText("India");
                 }
-                else if (city.equalsIgnoreCase("Chandigarh")) {
-                    stateField.setText("Chandigarh");
+                else if (city.equalsIgnoreCase("Varanasi")) {
+                    stateField.setText("Uttar Pradesh");
                     countryField.setText("India");
                 }
                 else if (city.equalsIgnoreCase("Bhopal")) {
                     stateField.setText("Madhya Pradesh");
                     countryField.setText("India");
                 }
-                else if (city.equalsIgnoreCase("Indore")) {
-                    stateField.setText("Madhya Pradesh");
+                else if (city.equalsIgnoreCase("Agra")) {
+                    stateField.setText("Uttar Pradesh");
                     countryField.setText("India");
                 }
-                else if (city.equalsIgnoreCase("Vadodara")) {
-                    stateField.setText("Gujarat");
+                else if (city.equalsIgnoreCase("Jhansi")) {
+                    stateField.setText("Uttar Pradesh");
                     countryField.setText("India");
                 }
                 else if (city.equalsIgnoreCase("Surat")) {
@@ -400,59 +400,59 @@ public class EmployeeForm extends JFrame {
         try {
             JSONObject json = buildJson();
             String response = employeeService.sendRequest("POST", "http://localhost:8080/api/employees", json.toString());
-            JOptionPane.showMessageDialog(this, "✅ Employee Added Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Employee Added Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearFields();
-            getAllEmployees(); // ✅ Refresh the employee table
+            getAllEmployees(); //  Refresh the employee table
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void updateEmployee() {
         try {
             if (idField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "⚠ Please enter Employee ID to update.", "Warning", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, " Please enter Employee ID to update.", "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             JSONObject json = buildJson();
             String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
             String response = employeeService.sendRequest("PUT", url, json.toString());
-            JOptionPane.showMessageDialog(this, "✅ Employee Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Employee Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearFields();
-            getAllEmployees(); // ✅ Refresh the employee table
+            getAllEmployees(); //  Refresh the employee table
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteEmployee() {
         try {
             if (idField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "⚠ Please enter Employee ID to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, " Please enter Employee ID to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             String url = "http://localhost:8080/api/employees/" + idField.getText().trim();
             String response = employeeService.sendRequest("DELETE", url, null);
-            JOptionPane.showMessageDialog(this, "✅ Deleted Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Deleted Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearFields();
-            getAllEmployees(); // ✅ Refresh the employee table
+            getAllEmployees(); //  Refresh the employee table
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Delete failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Delete failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // ✅ Updated method to populate employee table instead of text area
+    //  Updated method to populate employee table instead of text area
     private void getAllEmployees() {
         try {
             List<Map<String, String>> employees = employeeService.getAllEmployees("http://localhost:8080/api/employees");
             populateEmployeeTable(employees);
-            JOptionPane.showMessageDialog(this, "✅ Loaded " + employees.size() + " employees successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Loaded " + employees.size() + " employees successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Error loading employees: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Error loading employees: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    // ✅ New method to populate the employee table
+    //  New method to populate the employee table
     private void populateEmployeeTable(List<Map<String, String>> employees) {
         DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
         model.setRowCount(0); // Clear existing rows
@@ -471,7 +471,7 @@ public class EmployeeForm extends JFrame {
             String country = employee.getOrDefault("country", "");
             String mobile = employee.getOrDefault("mobileNo", "");
             
-            // ✅ Format education information for separate columns
+            //  Format education information for separate columns
             String tenth = formatEducationForColumn(employee.getOrDefault("education", ""), "Tenth");
             String twelfth = formatEducationForColumn(employee.getOrDefault("education", ""), "Twelfth");
             String graduation = formatEducationForColumn(employee.getOrDefault("education", ""), "Graduation");
@@ -480,7 +480,7 @@ public class EmployeeForm extends JFrame {
         }
     }
     
-    // ✅ New method to format education for specific column
+    //  New method to format education for specific column
     private String formatEducationForColumn(String educationJson, String level) {
         try {
             if (educationJson == null || educationJson.isEmpty()) {
@@ -524,7 +524,7 @@ public class EmployeeForm extends JFrame {
         }
     }
     
-    // ✅ New method to populate form fields when a row is selected
+    //  New method to populate form fields when a row is selected
     private void populateFormFromTable(int selectedRow) {
         DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
         
@@ -557,11 +557,11 @@ public class EmployeeForm extends JFrame {
         countryField.setText(country);
         mobileField.setText(mobile);
         
-        // ✅ Populate education table with employee's education data
+        //  Populate education table with employee's education data
         populateEducationTable(id);
     }
     
-    // ✅ New method to populate education table with employee's education data
+       //  New method to populate education table with employee's education data
     private void populateEducationTable(String employeeId) {
         try {
             // Get the employee's full data to access education
@@ -612,7 +612,7 @@ public class EmployeeForm extends JFrame {
         String dob = dobField.getText().trim();
         
         if (firstName.isEmpty() && dob.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "⚠ Please enter either First Name or Date of Birth to search.", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Please enter either First Name or Date of Birth to search.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -651,7 +651,7 @@ public class EmployeeForm extends JFrame {
             if (filteredEmployees.length() == 0) {
                 JOptionPane.showMessageDialog(this, "🔍 No employees found matching the search criteria.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                // ✅ Convert filtered results to table format
+                //  Convert filtered results to table format
                 List<Map<String, String>> filteredList = new ArrayList<>();
                 for (int i = 0; i < filteredEmployees.length(); i++) {
                     JSONObject emp = filteredEmployees.getJSONObject(i);
@@ -662,11 +662,11 @@ public class EmployeeForm extends JFrame {
                     filteredList.add(map);
                 }
                 populateEmployeeTable(filteredList);
-                JOptionPane.showMessageDialog(this, "🔍 Found " + filteredEmployees.length() + " employee(s) matching the search criteria.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, " Found " + filteredEmployees.length() + " employee(s) matching the search criteria.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
             }
             
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, " Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -690,7 +690,7 @@ public class EmployeeForm extends JFrame {
             }
         }
         
-        // ✅ Clear employee table selection
+        //  Clear employee table selection
         employeeTable.clearSelection();
     }
 
